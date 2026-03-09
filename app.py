@@ -25,12 +25,28 @@ def get_calendars():
         i += 1
     return calendars
 
+def get_filters():
+    raw = os.environ.get("FILTER_OUT", "")
+    if not raw:
+        return []
+    return [f.strip() for f in raw.split(",") if f.strip()]
+
+def should_filter(component, filters):
+    if not filters:
+        return False
+    summary = str(component.get('SUMMARY', ''))
+    return any(f.lower() in summary.lower() for f in filters)
+
 def fetch_and_merge():
     global cached_ical
     calendars = get_calendars()
     if not calendars:
         log.warning("No calendars configured!")
         return
+
+    filters = get_filters()
+    if filters:
+        log.info(f"Filtering out events containing: {filters}")
 
     merged = Calendar()
     merged.add('prodid', '-//ical-merger//EN')
@@ -53,6 +69,9 @@ def fetch_and_merge():
                         seen_timezones.add(tzid)
                         merged.add_component(component)
                 elif component.name == "VEVENT":
+                    if should_filter(component, filters):
+                        log.info(f"Filtered out: {component.get('SUMMARY', '')}")
+                        continue
                     uid = str(component.get('UID', ''))
                     if uid not in seen_uids:
                         seen_uids.add(uid)
