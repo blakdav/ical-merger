@@ -37,6 +37,9 @@ def fetch_and_merge():
     merged.add('version', '2.0')
     merged.add('x-wr-calname', 'Merged Calendar')
 
+    seen_uids = set()
+    seen_timezones = set()
+
     for cal in calendars:
         log.info(f"Fetching {cal['name']} from {cal['url']}")
         try:
@@ -44,8 +47,16 @@ def fetch_and_merge():
             resp.raise_for_status()
             source = Calendar.from_ical(resp.text)
             for component in source.walk():
-                if component.name in ("VEVENT", "VTIMEZONE"):
-                    merged.add_component(component)
+                if component.name == "VTIMEZONE":
+                    tzid = str(component.get('TZID', ''))
+                    if tzid not in seen_timezones:
+                        seen_timezones.add(tzid)
+                        merged.add_component(component)
+                elif component.name == "VEVENT":
+                    uid = str(component.get('UID', ''))
+                    if uid not in seen_uids:
+                        seen_uids.add(uid)
+                        merged.add_component(component)
         except Exception as e:
             log.error(f"Failed to fetch {cal['name']}: {e}")
 
