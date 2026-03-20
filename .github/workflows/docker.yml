@@ -23,4 +23,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: marbles9312/ical-merger:latest
+          tags: blakdav/ical-merger:latest
