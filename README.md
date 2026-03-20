@@ -29,4 +29,3 @@ On startup, the container fetches all configured calendar URLs, merges them into
 - Duplicate events (same UID) are automatically deduplicated
 - If a calendar feed fails to fetch, it is skipped and the last successful merge is served
 - Add as many calendars as needed by continuing the `CALENDAR_N_URL` / `CALENDAR_N_NAME` pattern
- 
